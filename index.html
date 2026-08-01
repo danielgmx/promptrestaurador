@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de prompt · Restauración fotográfica</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Space+Mono:wght@400;700&display=swap');
+
+  :root{
+    --paper: #ece5d6;
+    --paper-dark: #ddd3bc;
+    --ink: #2b2620;
+    --ink-soft: #6b6152;
+    --sepia: #8a5a3b;
+    --sepia-deep: #6e4327;
+    --line: #c9bea3;
+    --plate: #f4efe3;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,255,255,0.5), transparent 40%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Space Mono', monospace;
+    padding:48px 20px 80px;
+    min-height:100vh;
+  }
+
+  .frame{
+    max-width:760px;
+    margin:0 auto;
+  }
+
+  header{
+    margin-bottom:40px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:24px;
+  }
+
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--sepia-deep);
+    margin-bottom:10px;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(28px, 5vw, 40px);
+    margin:0 0 10px;
+    line-height:1.1;
+    color:var(--ink);
+  }
+
+  header p{
+    font-size:13px;
+    color:var(--ink-soft);
+    max-width:52ch;
+    line-height:1.6;
+    margin:0;
+  }
+
+  .field{
+    margin-bottom:26px;
+  }
+
+  label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--sepia-deep);
+    margin-bottom:8px;
+  }
+
+  label .num{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:13px;
+    color:var(--ink-soft);
+    text-transform:none;
+    letter-spacing:0;
+  }
+
+  input[type="text"], textarea{
+    width:100%;
+    background:var(--plate);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:13px 14px;
+    font-family:'Space Mono', monospace;
+    font-size:14px;
+    color:var(--ink);
+    resize:vertical;
+    line-height:1.5;
+  }
+
+  input[type="text"]:focus, textarea:focus{
+    outline:none;
+    border-color:var(--sepia);
+    box-shadow:0 0 0 3px rgba(138,90,59,0.12);
+  }
+
+  textarea{min-height:88px;}
+
+  .hint{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    line-height:1.5;
+  }
+
+  .toggle-row{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+    flex-wrap:wrap;
+  }
+
+  .toggle{
+    border:1px solid var(--line);
+    background:var(--plate);
+    color:var(--ink-soft);
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:8px 14px;
+    border-radius:20px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+
+  .toggle.active{
+    background:var(--sepia-deep);
+    border-color:var(--sepia-deep);
+    color:var(--plate);
+  }
+
+  .output-block{
+    margin-top:44px;
+  }
+
+  .output-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+
+  .output-title{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:16px;
+    color:var(--ink);
+  }
+
+  .copy-btn{
+    background:var(--sepia);
+    color:var(--plate);
+    border:none;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:9px 16px;
+    border-radius:2px;
+    cursor:pointer;
+    transition:background .15s ease;
+    white-space:nowrap;
+  }
+
+  .copy-btn:hover{background:var(--sepia-deep);}
+  .copy-btn.copied{background:#4a6741;}
+
+  pre.output{
+    background:var(--ink);
+    color:#e9e2d0;
+    padding:22px;
+    border-radius:2px;
+    font-family:'Space Mono', monospace;
+    font-size:12.5px;
+    line-height:1.65;
+    white-space:pre-wrap;
+    word-break:break-word;
+    max-height:520px;
+    overflow-y:auto;
+    border:1px solid #000;
+  }
+
+  .plate-number{
+    position:absolute;
+    top:20px;
+    right:20px;
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    color:var(--ink-soft);
+    font-size:12px;
+  }
+
+  .frame{position:relative;}
+
+  footer{
+    margin-top:50px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-size:11px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+
+  @media (max-width:600px){
+    body{padding:32px 16px 60px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <span class="plate-number">Plate — restauración</span>
+  <header>
+    <div class="eyebrow">Generador de prompt · para Gemini</div>
+    <h1>Restauración fotográfica<br>de archivo mexicano</h1>
+    <p>Completa el año, la construcción y, si aplica, la(s) persona(s). El prompt en inglés se arma abajo, listo para copiar y pegar.</p>
+  </header>
+
+  <div class="field">
+    <label for="year"><span>Año aproximado</span><span class="num">01</span></label>
+    <input type="text" id="year" placeholder="ej. 1925, principios de 1900s, década de 1930">
+  </div>
+
+  <div class="field">
+    <label for="scene"><span>Construcción / lugar</span><span class="num">02</span></label>
+    <textarea id="scene" placeholder="ej. Palacio Municipal con dos torres gemelas, arcadas en el segundo piso, tranvía en primer plano, calle empedrada"></textarea>
+    <div class="hint">Describe el edificio o escena tal como se ve en la foto: elementos arquitectónicos, objetos de la época, tipo de calle, etc.</div>
+  </div>
+
+  <div class="field">
+    <label for="person"><span>Persona(s) — opcional</span><span class="num">03</span></label>
+    <textarea id="person" placeholder="ej. Hombre con sombrero y traje de la época apoyado en un poste; grupo de mujeres con rebozo caminando"></textarea>
+    <div class="hint">Déjalo vacío si la foto no tiene personas identificables como sujeto principal.</div>
+  </div>
+
+  <div class="field">
+    <label><span>Versión del prompt</span><span class="num">04</span></label>
+    <div class="toggle-row">
+      <button class="toggle active" data-version="full">Completo</button>
+      <button class="toggle" data-version="short">Corto</button>
+    </div>
+  </div>
+
+  <div class="output-block">
+    <div class="output-header">
+      <span class="output-title">Prompt en inglés</span>
+      <button class="copy-btn" id="copyBtn">Copiar</button>
+    </div>
+    <pre class="output" id="output"></pre>
+  </div>
+
+  <footer>
+    Aspect ratio fijo en el prompt: panorámica 4:1 (equivalente a 6 × 1.5), lienzo ampliado hacia ambos lados manteniendo la foto original centrada e intacta.
+  </footer>
+</div>
+
+<script>
+  const yearEl = document.getElementById('year');
+  const sceneEl = document.getElementById('scene');
+  const personEl = document.getElementById('person');
+  const output = document.getElementById('output');
+  const copyBtn = document.getElementById('copyBtn');
+  const toggles = document.querySelectorAll('.toggle');
+
+  let version = 'full';
+
+  function render(){
+    output.textContent = version === 'full' ? buildFull() : buildShort();
+  }
+
+  toggles.forEach(btn => {
+    btn.addEventListener('click', () => {
+      version = btn.dataset.version;
+      toggles.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+  });
+
+  function buildSceneLine(){
+    const scene = sceneEl.value.trim() || '[SCENE DESCRIPTION]';
+    const person = personEl.value.trim();
+    return person ? `${scene}. Main subject(s): ${person}.` : scene;
+  }
+
+  function buildFull(){
+    const year = yearEl.value.trim() || '[APPROX. YEAR]';
+    const scene = buildSceneLine();
+    return `IMPORTANT: Use ONLY the image attached to this exact message as the single source of truth. Completely ignore any other image sent earlier in this conversation — do not blend, reference, or borrow any detail from it.
+
+This is a RESTORATION task, not a new image and not a reinterpretation. Treat the attached photograph as a fixed, locked reference for architecture, camera angle, and composition. Do not redesign, reimagine, "improve," or artistically reinterpret the building or scene in any way.
+
+Photograph: historic photo from Mexico, ${year}. Scene: ${scene}
+
+ARCHITECTURAL FIDELITY LOCK (highest priority — never violate this section):
+- Keep the exact same camera angle, lens perspective, and viewpoint as the original photograph. Do NOT straighten, center, symmetrize, or "correct" the perspective in any way — the original photo is an oblique/angled view, not a frontal architectural elevation, and it must stay that way.
+- If the two towers (or any repeated elements) appear at different sizes in the original because one is closer to the camera than the other, you MUST preserve that same size difference and the same relative position. Do not make them equal in size or symmetrically placed. Do not turn an angled three-quarter view into a flat frontal view.
+- Keep any foreground object (fountain, statue, lamppost, etc.) in the exact same off-center or on-center position it has in the original — do not recenter it under the building's midpoint if it wasn't centered there originally.
+- Keep the exact same building proportions as the original: same width-to-height ratio, same number and spacing of windows, arches, columns, balconies, and towers, same roofline.
+- Do not add, remove, resize, redesign, or relocate any architectural element (towers, domes, balconies, arches, cornices, decorative crests, ironwork). Do not merge this building with any other building or add buildings that are not present.
+- Do not change the shape, size, or position of foreground objects already in the photo — restore and colorize them exactly as they appear, do not redesign them.
+- Do not add people, vehicles, or objects that are not present in the original photograph, and do not remove or relocate people/objects that are present. The number and placement of figures and vehicles must match the original.
+- Before finalizing, compare your output against the source image: if the camera angle looks straightened, if the two towers look more equal in size than in the source, or if any object moved closer to the center than it was originally, this is a failure — correct it.
+- If anything in this section conflicts with any instruction below, this section wins.
+
+RESTORATION & DETAIL:
+- Remove scratches, stains, creases, film grain noise, and physical damage typical of an old black-and-white photograph.
+- Recover and sharpen fine detail in facades, stonework, ironwork, clothing, and ground textures, strictly following the shapes already visible in the original — do not invent detail that contradicts what's actually there.
+- Increase resolution and sharpness to print-quality level, without artifacts or excessive smoothing (avoid a plastic or "generic AI" look).
+
+COLORIZATION:
+- Full, rich, clearly visible color throughout the ENTIRE image — sky, facades, clothing, ground, foliage, vehicles — so the result reads as a genuine color photograph, not a lightly tinted or desaturated black-and-white image.
+- Historically plausible period palette for Mexico of that era (Autochrome / early Kodachrome-inspired tones): warm pink/ochre quarry stone (cantera), a real blue sky with visible depth, green foliage, true (not faded-out) period clothing colors.
+- Natural but saturated-enough skin tones and shadows; avoid a washed-out, gray, or "colorized old photo" look, while also avoiding an oversaturated modern/Instagram-filter look.
+- Lighting and shadow direction/intensity must match the time of day and light already visible in the original photo.
+
+TEXT CLEANUP:
+- Remove any watermark, printed caption, stamp, or overlaid logo/text from the image (e.g. postcard publisher names, "México," numbering), naturally reconstructing what's behind it (sky, wall, facade) with no visible trace or distortion. This is the only case where pixels may be altered beyond restoration/colorization/expansion.
+
+FRAME EXPANSION (outpainting) — apply only after everything above:
+- Expand the canvas horizontally on BOTH sides, keeping the original photograph perfectly centered, unmodified, uncropped, undistorted, and at its original scale.
+- Final aspect ratio: 4:1 horizontal panorama (equivalent to 6 x 1.5).
+- Extend the same street, facade, sky, ground, and (if present) people to both sides, matching the exact same perspective, horizon line, architectural style, era, and color palette as the untouched center.
+- The final image must read as one single continuous panoramic photograph, with no visible seam between the original center and the extended sides.
+
+DO NOT INCLUDE / AVOID (applies to the whole image):
+modern cars, contemporary street signs, modern lampposts, modern clothing, plastic/AI-smoothed skin, oversaturated or neon colors, muted/desaturated or grayscale colorization, faded pastel wash, sepia tint, warped faces, extra fingers or malformed limbs, new watermarks, added text, signatures, a straightened or symmetrized "frontal elevation" view of a building that was originally photographed at an angle, towers or repeated elements resized to look equal when the original shows a perspective size difference, foreground objects recentered from their original off-center position, any change to the building's angle, proportions, tower spacing, or architectural details described in the Fidelity Lock section above, any added or removed people/vehicles/objects not present in the original.`;
+  }
+
+  function buildShort(){
+    const year = yearEl.value.trim() || '[YEAR]';
+    const scene = buildSceneLine();
+    return `IMPORTANT: Use ONLY the attached image, ignore any other image from earlier in this conversation. This is a RESTORATION, not a reinterpretation: keep the exact same camera angle and oblique perspective — do NOT straighten or symmetrize the view. If elements like towers appear at different sizes because of perspective, preserve that size difference exactly; do not make them equal. Keep foreground objects (fountain, etc.) in their exact original off-center position — do not recenter them. Keep the exact same building proportions, tower spacing, architectural details, and the exact same people/vehicles/objects already present in the photo — do not add, remove, resize, or redesign anything structural. Historic photo from Mexico, ${year}, ${scene}. Remove scratches, noise, and any watermark/text (reconstructing what's behind it naturally). Apply full, rich, clearly visible period color throughout (real blue sky, warm cantera stone, true clothing colors) so it reads as an actual color photo, not a faint tint — without an oversaturated modern-filter look. Expand the canvas to a 4:1 panoramic aspect ratio (6x1.5), extending the scene photorealistically on both sides to match the untouched center exactly, with no modern elements, no seams, and the original photo perfectly centered and unaltered. Before finalizing, check your output against the source: if the perspective looks straightened or symmetrized, correct it. Avoid: modern cars/signage/lampposts/clothing, plastic-smoothed skin, oversaturated or desaturated/grayscale color, warped faces, extra fingers, new watermarks or text.`;
+  }
+
+  [yearEl, sceneEl, personEl].forEach(el => el.addEventListener('input', render));
+
+  function flashCopied(){
+    copyBtn.textContent = 'Copiado ✓';
+    copyBtn.classList.add('copied');
+    setTimeout(() => {
+      copyBtn.textContent = 'Copiar';
+      copyBtn.classList.remove('copied');
+    }, 1600);
+  }
+
+  function fallbackCopy(text){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try{
+      document.execCommand('copy');
+      flashCopied();
+    }catch(err){
+      copyBtn.textContent = 'Selecciona y usa Ctrl+C';
+      setTimeout(() => { copyBtn.textContent = 'Copiar'; }, 2200);
+    }
+    document.body.removeChild(ta);
+  }
+
+  copyBtn.addEventListener('click', () => {
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(output.textContent).then(flashCopied).catch(() => {
+        fallbackCopy(output.textContent);
+      });
+    } else {
+      fallbackCopy(output.textContent);
+    }
+  });
+
+  // También permite seleccionar todo el texto haciendo clic directo en el bloque
+  output.addEventListener('click', () => {
+    const range = document.createRange();
+    range.selectNodeContents(output);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  });
+
+  render();
+</script>
+
+</body>
+</html>
